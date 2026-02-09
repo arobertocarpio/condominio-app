@@ -1,8 +1,7 @@
 const router = require('express').Router();
 const { auth } = require('../../middleware/middleware.auth.js');
+const { register } = require('./user.controller');
 
-router.get('/user_profile', auth(['admin']), (req, res) => {
-    res.json({ message: 'This is the user profile: admin.' });
-});
+router.post('/register', register);
 
 module.exports = router;

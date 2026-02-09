@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -8,14 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  admin
+  vigilant
+  resident
+}
+
 model User {
   id                Int         @id @default(autoincrement())
   name              String
   email             String      @unique
   password          String
-  role              String
+  role              Role        
   failed_attempt    Int         @default(0)
   blocked_account   String      @default("N")
   fecha_registro    DateTime    @default(now())
-
 }
