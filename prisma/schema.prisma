@@ -7,19 +7,143 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  admin
-  vigilant
-  resident
+model Usuario {
+  id_usuario       Int      @id @default(autoincrement())
+  correo           String   @unique
+  password         String
+  rol              String?
+  intentos_fallidos Int     @default(0)
+  cuenta_bloq      String   @default("N")
+  fecha_registro   DateTime @default(now())
+
+  residentes       Residente[]
+  vigilantes       Vigilante[]
+  administradores  Administrador[]
 }
 
-model User {
-  id                Int         @id @default(autoincrement())
-  name              String
-  email             String      @unique
-  password          String
-  role              String
-  failed_attempt    Int         @default(0)
-  blocked_account   String      @default("N")
-  fecha_registro    DateTime    @default(now())
+model Edificio {
+  id_edificio  Int            @id @default(autoincrement())
+  num_edificio Int?
+  
+  departamentos Departamento[]
+  residentes    Residente[]
+  visitantes    Visitante[]
+}
+
+model Departamento {
+  id_departamento    Int      @id @default(autoincrement())
+  id_edificio_fk     Int
+  edificio           Edificio @relation(fields: [id_edificio_fk], references: [id_edificio])
+
+  residentes         Residente[]
+  cajones            Cajon[]
+  visitantes         Visitante[]
+}
+
+model Residente {
+  id_residente       Int          @id @default(autoincrement())
+  nombre             String
+  telefono           String?
+  id_departamento_fk Int
+  id_edificio_fk     Int
+  id_usuario_fk      Int
+
+  departamento       Departamento @relation(fields: [id_departamento_fk], references: [id_departamento])
+  edificio           Edificio     @relation(fields: [id_edificio_fk], references: [id_edificio])
+  usuario            Usuario      @relation(fields: [id_usuario_fk], references: [id_usuario])
+
+  matriculas         Matricula[]
+  pagos              EstadoPago[]
+}
+
+model Cajon {
+  id_cajon           Int          @id @default(autoincrement())
+  estado             String?
+  id_departamento_fk Int
+  departamento       Departamento @relation(fields: [id_departamento_fk], references: [id_departamento])
+
+  accesos            Acceso[]
+}
+
+model Visitante {
+  id_visitante       Int          @id @default(autoincrement())
+  empresa            String?
+  nombre             String
+  id_departamento_fk Int
+  categoria          String?
+  id_edificio_fk     Int
+  activo             String       @default("S")
+
+  departamento       Departamento @relation(fields: [id_departamento_fk], references: [id_departamento])
+  edificio           Edificio     @relation(fields: [id_edificio_fk], references: [id_edificio])
+
+  matriculas         Matricula[]
+  accesos            Acceso[]
+}
+
+model Vigilante {
+  id_vigilante       Int      @id @default(autoincrement())
+  nombre             String
+  telefono           String?
+  id_usuario_fk      Int
+  usuario            Usuario  @relation(fields: [id_usuario_fk], references: [id_usuario])
+
+  accesos            Acceso[]
+}
+
+model Administrador {
+  id_admin           Int      @id @default(autoincrement())
+  id_usuario_fk      Int
+  nombre             String
+  usuario            Usuario  @relation(fields: [id_usuario_fk], references: [id_usuario])
+
+  anuncios           Anuncio[]
+}
+
+model Matricula {
+  matricula          String     @id
+  id_residente_fk    Int?
+  id_visitante_fk    Int?
+
+  residente          Residente? @relation(fields: [id_residente_fk], references: [id_residente])
+  visitante          Visitante? @relation(fields: [id_visitante_fk], references: [id_visitante])
+  
+  accesos            Acceso[]
+}
+
+model Acceso {
+  id_accesos         Int        @id @default(autoincrement())
+  hora_entrada       DateTime   @default(now())
+  hora_salida        DateTime?
+  matricula_fk       String
+  id_cajon_fk        Int?
+  id_vigilante_fk    Int
+  id_visitante_fk    Int?
+
+  matricula          Matricula  @relation(fields: [matricula_fk], references: [matricula])
+  cajon              Cajon?     @relation(fields: [id_cajon_fk], references: [id_cajon])
+  vigilante          Vigilante  @relation(fields: [id_vigilante_fk], references: [id_vigilante])
+  visitante          Visitante? @relation(fields: [id_visitante_fk], references: [id_visitante])
+}
+
+model EstadoPago {
+  id_pago            Int       @id @default(autoincrement())
+  estado             String?
+  monto              Decimal   @db.Decimal(10, 2)
+  fecha_ultimopago   DateTime?
+  fecha_vencimiento  DateTime?
+  estatus            String?
+  id_residente_fk    Int
+  residente          Residente @relation(fields: [id_residente_fk], references: [id_residente])
+}
+
+model Anuncio {
+  id_anuncio         Int           @id @default(autoincrement())
+  titulo             String
+  mensaje            String        @db.Text
+  ruta_archivo       String?
+  id_admin_fk        Int
+  fecha_publicacion  DateTime      @default(now())
+  
+  administrador      Administrador @relation(fields: [id_admin_fk], references: [id_admin])
 }
