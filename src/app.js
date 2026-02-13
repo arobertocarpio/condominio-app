@@ -20,5 +20,6 @@ app.use('/api/matriculas', require('./modules/matriculas/matricula.routes'));
 app.use('/api/accesos', require('./modules/accesos/acceso.routes'));
 app.use('/api/pagos', require('./modules/pagos/estadopago.routes'));
 app.use('/api/anuncios', require('./modules/anuncios/anuncio.routes'));
+app.use('/api/dashboard', require('./modules/dashboard/dashboard.routes'));
 
 module.exports = app;

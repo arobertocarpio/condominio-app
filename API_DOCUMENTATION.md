@@ -40,6 +40,86 @@ Authorization: Bearer <token>
 
 ## 📚 Endpoints Disponibles
 
+### 🔐 Autenticación (`/api/auth`)
+
+- `POST /register` - Registrar nuevo usuario *(público)*
+- `POST /login` - Iniciar sesión *(público)*
+- `GET /me` - Obtener perfil del usuario autenticado *(auth)*
+- `PATCH /cambiar-password` - Cambiar contraseña *(auth)*
+
+**Ejemplo registro:**
+```json
+{
+  "correo": "usuario@ejemplo.com",
+  "password": "miPassword123",
+  "rol": "residente"
+}
+```
+
+**Ejemplo login:**
+```json
+{
+  "correo": "usuario@ejemplo.com",
+  "password": "miPassword123"
+}
+```
+
+**Ejemplo cambiar contraseña:**
+```json
+{
+  "passwordActual": "miPassword123",
+  "passwordNuevo": "nuevoPassword456"
+}
+```
+
+> ⚠️ Después de 5 intentos fallidos la cuenta se bloquea automáticamente.
+
+---
+
+### 👤 Usuarios (`/api/users`) — Solo Admin
+
+- `POST /register` - Crear usuario *(público)*
+- `GET /` - Obtener todos los usuarios *(admin)*
+- `GET /:id` - Obtener usuario por ID *(admin)*
+- `PUT /:id` - Actualizar usuario *(admin)*
+- `DELETE /:id` - Eliminar usuario *(admin)*
+- `PATCH /:id/bloquear` - Bloquear cuenta *(admin)*
+- `PATCH /:id/desbloquear` - Desbloquear cuenta *(admin)*
+
+**Ejemplo crear usuario:**
+```json
+{
+  "correo": "nuevo@ejemplo.com",
+  "password": "pass123",
+  "rol": "residente"
+}
+```
+
+**Roles disponibles:** `admin`, `residente`, `vigilante`
+
+---
+
+### 📊 Dashboard (`/api/dashboard`) — Solo Admin
+
+- `GET /` - Obtener estadísticas generales del condominio *(admin)*
+
+**Respuesta ejemplo:**
+```json
+{
+  "edificios": 3,
+  "departamentos": 24,
+  "residentes": 45,
+  "vigilantes": 4,
+  "visitantes": { "total": 12, "activos": 8 },
+  "cajones": { "total": 50, "disponibles": 35, "ocupados": 15 },
+  "accesos": { "activos": 3, "hoy": 12 },
+  "pagos": { "pendientes": 10, "vencidos": 3 },
+  "anuncios": 5
+}
+```
+
+---
+
 ### 🏢 Edificios (`/api/edificios`)
 
 - `POST /` - Crear edificio
@@ -392,18 +472,21 @@ Edificio
 
 - **Node.js** + **Express.js**
 - **Prisma ORM**
-- **PostgreSQL**
+- **MySQL**
 - **JWT** para autenticación
 - **bcrypt** para hashing de contraseñas
 
 ## 📝 Notas Importantes
 
 1. **Autenticación**: Todos los endpoints requieren token JWT excepto login/registro
-2. **Prisma Client**: Se regenera automáticamente después de cambios en el schema
-3. **Migraciones**: Usa `npx prisma migrate dev` para aplicar cambios al schema
-4. **Estados de Visitante**: "S" = activo, "N" = inactivo
-5. **Accesos Activos**: Accesos sin `hora_salida` están activos
-6. **Matrículas**: Pueden pertenecer a residentes o visitantes (uno u otro)
+2. **Roles**: `admin`, `residente`, `vigilante` — aplicados con middleware `requireRole`
+3. **Bloqueo de cuentas**: Después de 5 intentos fallidos de login, la cuenta se bloquea
+4. **Prisma Client**: Se regenera automáticamente después de cambios en el schema
+5. **Migraciones**: Usa `npx prisma migrate dev` para aplicar cambios al schema
+6. **Estados de Visitante**: "S" = activo, "N" = inactivo
+7. **Accesos Activos**: Accesos sin `hora_salida` están activos
+8. **Matrículas**: Pueden pertenecer a residentes o visitantes (uno u otro)
+9. **Dashboard**: Solo accesible para administradores
 
 ## 🚀 Próximos Pasos
 

@@ -1,51 +1,144 @@
-const bcrypt = require('bcryptjs');
+const prisma = require('../../config/prisma');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const users = require('../users/user.model');
 
-exports.register = async (data) => {
-    const exist = users.find(u => u.email === data.email);
-    if (exist) throw new Error('Ya hay un usuario registrado con ese correo.');
+const MAX_INTENTOS = 5;
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-
-    const newUser = {
-        id: users.length + 1,
-        email: data.email,
-        password: hashedPassword,
-        name: data.name,
-        role: data.role,
-    };
-
-    users.push(newUser);
-    return { 
-        id: newUser.id, 
-        email: newUser.email, 
-        name: newUser.name, 
-        role: newUser.role 
-    };
-};
-
-exports.login = async (data) => {
-    if (!data.email || !data.password) {
+exports.register = async ({ correo, password, rol }) => {
+    if (!correo || !password) {
         throw new Error('Correo y contraseña son obligatorios.');
     }
 
-    const email = data.email.toLowerCase();
-    const user = users.find(u => u.email === email);
-    if (!user) {
+    const existe = await prisma.usuario.findUnique({ where: { correo: correo.toLowerCase() } });
+    if (existe) throw new Error('Ya hay un usuario registrado con ese correo.');
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const usuario = await prisma.usuario.create({
+        data: {
+            correo: correo.toLowerCase(),
+            password: hashedPassword,
+            rol: rol || 'residente',
+        },
+    });
+
+    return {
+        id: usuario.id_usuario,
+        correo: usuario.correo,
+        rol: usuario.rol,
+    };
+};
+
+exports.login = async ({ correo, password }) => {
+    if (!correo || !password) {
+        throw new Error('Correo y contraseña son obligatorios.');
+    }
+
+    const usuario = await prisma.usuario.findUnique({
+        where: { correo: correo.toLowerCase() },
+    });
+
+    if (!usuario) {
         throw new Error('Correo o contraseña incorrectos.');
     }
 
-    const valid = await bcrypt.compare(data.password, user.password);
+    if (usuario.cuenta_bloq === 'S') {
+        throw new Error('Cuenta bloqueada. Contacte al administrador.');
+    }
+
+    const valid = await bcrypt.compare(password, usuario.password);
+
     if (!valid) {
+        const nuevosIntentos = usuario.intentos_fallidos + 1;
+        const bloqueada = nuevosIntentos >= MAX_INTENTOS ? 'S' : 'N';
+
+        await prisma.usuario.update({
+            where: { id_usuario: usuario.id_usuario },
+            data: {
+                intentos_fallidos: nuevosIntentos,
+                cuenta_bloq: bloqueada,
+            },
+        });
+
+        if (bloqueada === 'S') {
+            throw new Error('Cuenta bloqueada por demasiados intentos fallidos.');
+        }
+
         throw new Error('Correo o contraseña incorrectos.');
+    }
+
+    if (usuario.intentos_fallidos > 0) {
+        await prisma.usuario.update({
+            where: { id_usuario: usuario.id_usuario },
+            data: { intentos_fallidos: 0 },
+        });
     }
 
     const token = jwt.sign(
-        { id: user.id, role: user.role },
+        { id: usuario.id_usuario, rol: usuario.rol },
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN }
+        { expiresIn: '24h' }
     );
 
-    return { token, role: user.role };
+    return {
+        token,
+        usuario: {
+            id: usuario.id_usuario,
+            correo: usuario.correo,
+            rol: usuario.rol,
+        },
+    };
+};
+
+exports.getProfile = async (userId) => {
+    const usuario = await prisma.usuario.findUnique({
+        where: { id_usuario: userId },
+        select: {
+            id_usuario: true,
+            correo: true,
+            rol: true,
+            fecha_registro: true,
+            cuenta_bloq: true,
+            residentes: {
+                select: { id_residente: true, nombre: true, telefono: true, departamento: true, edificio: true },
+            },
+            vigilantes: {
+                select: { id_vigilante: true, nombre: true, telefono: true },
+            },
+            administradores: {
+                select: { id_admin: true, nombre: true },
+            },
+        },
+    });
+
+    if (!usuario) throw new Error('Usuario no encontrado.');
+    return usuario;
+};
+
+exports.cambiarPassword = async (userId, { passwordActual, passwordNuevo }) => {
+    if (!passwordActual || !passwordNuevo) {
+        throw new Error('La contraseña actual y la nueva son obligatorias.');
+    }
+
+    if (passwordNuevo.length < 6) {
+        throw new Error('La nueva contraseña debe tener al menos 6 caracteres.');
+    }
+
+    const usuario = await prisma.usuario.findUnique({
+        where: { id_usuario: userId },
+    });
+
+    if (!usuario) throw new Error('Usuario no encontrado.');
+
+    const valid = await bcrypt.compare(passwordActual, usuario.password);
+    if (!valid) throw new Error('La contraseña actual es incorrecta.');
+
+    const hashedPassword = await bcrypt.hash(passwordNuevo, 10);
+
+    await prisma.usuario.update({
+        where: { id_usuario: userId },
+        data: { password: hashedPassword },
+    });
+
+    return { message: 'Contraseña actualizada correctamente.' };
 };

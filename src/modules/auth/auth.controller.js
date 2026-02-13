@@ -1,32 +1,40 @@
-const prisma = require('../../config/prisma');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const authService = require('./auth.service');
+
+exports.register = async (req, res) => {
+    try {
+        const usuario = await authService.register(req.body);
+        res.status(201).json(usuario);
+    } catch (error) {
+        const status = error.message.includes('Ya hay un usuario') ? 409 : 500;
+        res.status(status).json({ message: error.message });
+    }
+};
 
 exports.login = async (req, res) => {
     try {
-        const { correo, password } = req.body;
-
-        const usuario = await prisma.usuario.findUnique({ where: { correo } });
-        if (!usuario) return res.status(400).json({ message: 'Correo electrónico o contraseña incorrectos.' });
-
-        const passwordMatch = await bcrypt.compare(password, usuario.password);
-        if (!passwordMatch) return res.status(400).json({ message: 'Correo electrónico o contraseña incorrectos.' });
-
-        const token = jwt.sign(
-            { id: usuario.id_usuario, rol: usuario.rol },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-        
-        res.json({ 
-            token,
-            usuario: {
-                id: usuario.id_usuario,
-                correo: usuario.correo,
-                rol: usuario.rol
-            }
-        });
+        const result = await authService.login(req.body);
+        res.json(result);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        const status = error.message.includes('bloqueada') ? 423 : 400;
+        res.status(status).json({ message: error.message });
+    }
+};
+
+exports.getProfile = async (req, res) => {
+    try {
+        const usuario = await authService.getProfile(req.user.id);
+        res.json(usuario);
+    } catch (error) {
+        res.status(404).json({ message: error.message });
+    }
+};
+
+exports.cambiarPassword = async (req, res) => {
+    try {
+        const result = await authService.cambiarPassword(req.user.id, req.body);
+        res.json(result);
+    } catch (error) {
+        const status = error.message.includes('incorrecta') ? 400 : 500;
+        res.status(status).json({ message: error.message });
     }
 };
