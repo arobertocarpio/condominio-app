@@ -13,9 +13,25 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
+// Mapa de alias para normalizar roles (BD puede tener ADMINISTRADOR, admin, Admin, etc.)
+const ROLE_ALIASES = {
+    'administrador': 'admin',
+    'residente': 'residente',
+    'vigilante': 'vigilante',
+};
+
+const normalizeRole = (rol) => {
+    if (!rol) return null;
+    const lower = rol.toLowerCase();
+    return ROLE_ALIASES[lower] || lower;
+};
+
 const requireRole = (roles = []) => {
     return (req, res, next) => {
-        if (roles.length && !roles.includes(req.user.rol)) {
+        const userRole = normalizeRole(req.user.rol);
+        const allowedRoles = roles.map(r => r.toLowerCase());
+
+        if (allowedRoles.length && !allowedRoles.includes(userRole)) {
             return res.status(403).json({ message: 'Acceso denegado.' });
         }
         next();

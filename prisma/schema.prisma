@@ -23,7 +23,7 @@ model Usuario {
 
 model Edificio {
   id_edificio  Int            @id @default(autoincrement())
-  num_edificio Int?
+  num_edificio String?
   
   departamentos Departamento[]
   residentes    Residente[]
