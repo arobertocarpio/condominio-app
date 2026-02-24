@@ -2,29 +2,13 @@ const prisma = require('../../config/prisma');
 
 class ResidenteService {
   async crear(data) {
-    const { matricula, ...residenteData } = data;
-
-    return await prisma.$transaction(async (tx) => {
-      const residente = await tx.residente.create({
-        data: residenteData,
-        include: {
-          departamento: true,
-          edificio: true,
-          usuario: true
-        }
-      });
-
-      if (matricula) {
-        const matriculaCreada = await tx.matricula.create({
-          data: {
-            matricula,
-            id_residente_fk: residente.id_residente
-          }
-        });
-        residente.matriculas = [matriculaCreada];
+    return await prisma.residente.create({
+      data,
+      include: {
+        departamento: true,
+        edificio: true,
+        usuario: true
       }
-
-      return residente;
     });
   }
 

@@ -2,21 +2,8 @@ const prisma = require('../../config/prisma');
 
 class AccesoService {
   async registrarEntrada(data) {
-    // Build create data using Prisma relation connect syntax
-    const createData = {
-      matricula: { connect: { matricula: data.matricula_fk } },
-      vigilante: { connect: { id_vigilante: parseInt(data.id_vigilante_fk) } },
-    };
-
-    if (data.id_cajon_fk) {
-      createData.cajon = { connect: { id_cajon: parseInt(data.id_cajon_fk) } };
-    }
-    if (data.id_visitante_fk) {
-      createData.visitante = { connect: { id_visitante: parseInt(data.id_visitante_fk) } };
-    }
-
     return await prisma.acceso.create({
-      data: createData,
+      data,
       include: {
         matricula: true,
         cajon: true,
