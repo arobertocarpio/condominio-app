@@ -3,7 +3,11 @@ const edificioService = require('./edificio.service');
 class EdificioController {
   async crear(req, res) {
     try {
-      const edificio = await edificioService.crear(req.body);
+      const data = {
+        ...req.body,
+        num_edificio: parseInt(req.body.num_edificio),
+      };
+      const edificio = await edificioService.crear(data);
       res.status(201).json(edificio);
     } catch (error) {
       res.status(500).json({ error: error.message });

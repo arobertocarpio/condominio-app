@@ -3,7 +3,9 @@ const prisma = require('../../config/prisma');
 class EdificioService {
   async crear(data) {
     return await prisma.edificio.create({
-      data
+      data: {
+        num_edificio: parseInt(data.num_edificio),
+      }
     });
   }
 
@@ -29,9 +31,13 @@ class EdificioService {
   }
 
   async actualizar(id, data) {
+    const updateData = { ...data };
+    if (data.num_edificio !== undefined) {
+      updateData.num_edificio = parseInt(data.num_edificio);
+    }
     return await prisma.edificio.update({
       where: { id_edificio: parseInt(id) },
-      data
+      data: updateData
     });
   }
 
