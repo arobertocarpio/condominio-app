@@ -1,10 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Servir archivos estáticos de uploads
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // EN ESTE ESPACIO SE DEFINEN LAS RUTAS DE LOS SERVICIOS
 app.use('/api/auth', require('./modules/auth/auth.routes'));

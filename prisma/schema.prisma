@@ -82,11 +82,13 @@ model Visitante {
 }
 
 model Vigilante {
-  id_vigilante       Int      @id @default(autoincrement())
+  id_vigilante       Int       @id @default(autoincrement())
   nombre             String
   telefono           String?
+  turno              String?   // matutino, vespertino, nocturno
+  fecha_alta         DateTime? @default(now())
   id_usuario_fk      Int
-  usuario            Usuario  @relation(fields: [id_usuario_fk], references: [id_usuario])
+  usuario            Usuario   @relation(fields: [id_usuario_fk], references: [id_usuario])
 
   accesos            Acceso[]
 }

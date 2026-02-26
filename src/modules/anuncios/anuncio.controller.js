@@ -1,9 +1,19 @@
 const anuncioService = require('./anuncio.service');
+const fs = require('fs');
+const path = require('path');
 
 class AnuncioController {
   async crear(req, res) {
     try {
-      const anuncio = await anuncioService.crear(req.body);
+      const data = { ...req.body };
+      if (req.file) {
+        data.ruta_archivo = `/uploads/anuncios/${req.file.filename}`;
+      }
+      // Convertir id_admin_fk a entero
+      if (data.id_admin_fk) {
+        data.id_admin_fk = parseInt(data.id_admin_fk);
+      }
+      const anuncio = await anuncioService.crear(data);
       res.status(201).json(anuncio);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -65,7 +75,22 @@ class AnuncioController {
 
   async actualizar(req, res) {
     try {
-      const anuncio = await anuncioService.actualizar(req.params.id, req.body);
+      const data = { ...req.body };
+      if (req.file) {
+        // Eliminar archivo anterior si existe
+        const anuncioActual = await anuncioService.obtenerPorId(req.params.id);
+        if (anuncioActual && anuncioActual.ruta_archivo) {
+          const archivoAnterior = path.join(__dirname, '../..', anuncioActual.ruta_archivo);
+          if (fs.existsSync(archivoAnterior)) {
+            fs.unlinkSync(archivoAnterior);
+          }
+        }
+        data.ruta_archivo = `/uploads/anuncios/${req.file.filename}`;
+      }
+      if (data.id_admin_fk) {
+        data.id_admin_fk = parseInt(data.id_admin_fk);
+      }
+      const anuncio = await anuncioService.actualizar(req.params.id, data);
       res.json(anuncio);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -74,6 +99,14 @@ class AnuncioController {
 
   async eliminar(req, res) {
     try {
+      // Eliminar archivo asociado si existe
+      const anuncio = await anuncioService.obtenerPorId(req.params.id);
+      if (anuncio && anuncio.ruta_archivo) {
+        const archivoPath = path.join(__dirname, '../..', anuncio.ruta_archivo);
+        if (fs.existsSync(archivoPath)) {
+          fs.unlinkSync(archivoPath);
+        }
+      }
       await anuncioService.eliminar(req.params.id);
       res.status(204).send();
     } catch (error) {
