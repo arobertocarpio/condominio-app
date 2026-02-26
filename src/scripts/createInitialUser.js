@@ -14,7 +14,7 @@ async function createInitialUser() {
         // Datos del usuario inicial
         const userData = {
             correo: 'admin@condominio.com',
-            password: await bcrypt.hash('admin123', 10),
+            password: await bcrypt.hash('Admin123!', 10),
             rol: 'ADMINISTRADOR'
         };
 

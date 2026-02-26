@@ -15,7 +15,7 @@ CREATE TABLE `Usuario` (
 -- CreateTable
 CREATE TABLE `Edificio` (
     `id_edificio` INTEGER NOT NULL AUTO_INCREMENT,
-    `num_edificio` VARCHAR(191) NULL,
+    `num_edificio` INTEGER NOT NULL,
 
     PRIMARY KEY (`id_edificio`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -67,6 +67,8 @@ CREATE TABLE `Vigilante` (
     `id_vigilante` INTEGER NOT NULL AUTO_INCREMENT,
     `nombre` VARCHAR(191) NOT NULL,
     `telefono` VARCHAR(191) NULL,
+    `turno` VARCHAR(191) NULL,
+    `fecha_alta` DATETIME(3) NULL DEFAULT CURRENT_TIMESTAMP(3),
     `id_usuario_fk` INTEGER NOT NULL,
 
     PRIMARY KEY (`id_vigilante`)

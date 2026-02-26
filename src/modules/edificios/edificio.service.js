@@ -2,8 +2,16 @@ const prisma = require('../../config/prisma');
 
 class EdificioService {
   async crear(data) {
+    const noEdificio = Number(data.num_edificio);
+    if (isNaN(noEdificio)) {
+      throw new Error('El número de edificio debe ser un valor numérico');
+    }
+
     return await prisma.edificio.create({
-      data
+      data: {
+        ...data,
+        num_edificio: noEdificio
+      }
     });
   }
 
