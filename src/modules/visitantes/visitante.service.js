@@ -49,7 +49,13 @@ class VisitanteService {
       include: {
         departamento: true,
         edificio: true,
-        matriculas: true
+        matriculas: true,
+        accesos: {
+          take: 1,
+          orderBy: {
+            hora_entrada: 'desc'
+          }
+        }
       }
     });
   }
@@ -72,7 +78,7 @@ class VisitanteService {
 
   async obtenerPorDepartamento(idDepartamento) {
     return await prisma.visitante.findMany({
-      where: { 
+      where: {
         id_departamento_fk: parseInt(idDepartamento),
         activo: 'S'
       },
@@ -84,7 +90,7 @@ class VisitanteService {
 
   async obtenerPorCategoria(categoria) {
     return await prisma.visitante.findMany({
-      where: { 
+      where: {
         categoria,
         activo: 'S'
       },

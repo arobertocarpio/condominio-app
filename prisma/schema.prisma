@@ -32,6 +32,7 @@ model Edificio {
 
 model Departamento {
   id_departamento    Int      @id @default(autoincrement())
+  num_departamento   String
   id_edificio_fk     Int
   edificio           Edificio @relation(fields: [id_edificio_fk], references: [id_edificio])
 
