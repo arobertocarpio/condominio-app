@@ -74,6 +74,7 @@ model Visitante {
   categoria          String?
   id_edificio_fk     Int
   activo             String       @default("S")
+  hora_entrada       DateTime     @default(now())
 
   departamento       Departamento @relation(fields: [id_departamento_fk], references: [id_departamento])
   edificio           Edificio     @relation(fields: [id_edificio_fk], references: [id_edificio])

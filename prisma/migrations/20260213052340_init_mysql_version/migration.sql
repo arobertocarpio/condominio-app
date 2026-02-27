@@ -1,3 +1,19 @@
+-- Drop existing tables if they exist (from previous migration)
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS `Anuncio`;
+DROP TABLE IF EXISTS `EstadoPago`;
+DROP TABLE IF EXISTS `Acceso`;
+DROP TABLE IF EXISTS `Matricula`;
+DROP TABLE IF EXISTS `Administrador`;
+DROP TABLE IF EXISTS `Vigilante`;
+DROP TABLE IF EXISTS `Visitante`;
+DROP TABLE IF EXISTS `Cajon`;
+DROP TABLE IF EXISTS `Residente`;
+DROP TABLE IF EXISTS `Departamento`;
+DROP TABLE IF EXISTS `Edificio`;
+DROP TABLE IF EXISTS `Usuario`;
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- CreateTable
 CREATE TABLE `Usuario` (
     `id_usuario` INTEGER NOT NULL AUTO_INCREMENT,

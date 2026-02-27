@@ -1,2 +1,3 @@
--- CreateEnum
-CREATE TYPE "public"."Role" AS ENUM ('admin', 'vigilant', 'resident');
+-- This migration originally created a PostgreSQL enum type.
+-- MySQL does not support CREATE TYPE, so this is a no-op.
+-- The role field is handled as VARCHAR in MySQL.
