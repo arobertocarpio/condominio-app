@@ -25,5 +25,6 @@ app.use('/api/accesos', require('./modules/accesos/acceso.routes'));
 app.use('/api/pagos', require('./modules/pagos/estadopago.routes'));
 app.use('/api/anuncios', require('./modules/anuncios/anuncio.routes'));
 app.use('/api/dashboard', require('./modules/dashboard/dashboard.routes'));
+app.use('/api/password', require('./modules/password/password.routes'));
 
 module.exports = app;
