@@ -1,4 +1,5 @@
 const anuncioService = require('./anuncio.service');
+const prisma = require('../../config/prisma');
 const fs = require('fs');
 const path = require('path');
 
@@ -9,10 +10,30 @@ class AnuncioController {
       if (req.file) {
         data.ruta_archivo = `/uploads/anuncios/${req.file.filename}`;
       }
-      // Convertir id_admin_fk a entero
-      if (data.id_admin_fk) {
-        data.id_admin_fk = parseInt(data.id_admin_fk);
+      // Intentar obtener id_admin_fk desde el body o, si falta, desde el usuario autenticado
+      let idAdmin = parseInt(data.id_admin_fk, 10);
+
+      if (!idAdmin && req.user?.id) {
+        const admin = await prisma.administrador.findFirst({
+          where: { id_usuario_fk: req.user.id },
+        });
+
+        if (!admin) {
+          return res
+            .status(400)
+            .json({ error: 'No se encontró un perfil de administrador para el usuario autenticado.' });
+        }
+
+        idAdmin = admin.id_admin;
       }
+
+      if (!idAdmin) {
+        return res
+          .status(400)
+          .json({ error: 'id_admin_fk es obligatorio y debe ser un número entero válido' });
+      }
+
+      data.id_admin_fk = idAdmin;
       const anuncio = await anuncioService.crear(data);
       res.status(201).json(anuncio);
     } catch (error) {

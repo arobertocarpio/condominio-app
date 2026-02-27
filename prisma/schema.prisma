@@ -19,6 +19,7 @@ model Usuario {
   residentes       Residente[]
   vigilantes       Vigilante[]
   administradores  Administrador[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Edificio {
@@ -61,7 +62,7 @@ model Cajon {
   id_cajon           Int          @id @default(autoincrement())
   estado             String?
   id_departamento_fk Int
-  departamento       Departamento @relation(fields: [id_departamento_fk], references: [id_departamento])
+  departamento       Departamento @relation(fields: [id_departamento_fk], references: [id_departamento], onDelete: Cascade)
 
   accesos            Acceso[]
 }
@@ -126,7 +127,7 @@ model Acceso {
 
   matricula          Matricula  @relation(fields: [matricula_fk], references: [matricula])
   cajon              Cajon?     @relation(fields: [id_cajon_fk], references: [id_cajon])
-  vigilante          Vigilante  @relation(fields: [id_vigilante_fk], references: [id_vigilante])
+  vigilante          Vigilante  @relation(fields: [id_vigilante_fk], references: [id_vigilante], onDelete: Cascade)
   visitante          Visitante? @relation(fields: [id_visitante_fk], references: [id_visitante])
 }
 
@@ -150,4 +151,14 @@ model Anuncio {
   fecha_publicacion  DateTime      @default(now())
   
   administrador      Administrador @relation(fields: [id_admin_fk], references: [id_admin])
+}
+
+model PasswordResetToken {
+  id_token     Int      @id @default(autoincrement())
+  id_usuario_fk Int
+  token_hash   String
+  expires_at   DateTime
+  used         Boolean  @default(false)
+
+  usuario      Usuario  @relation(fields: [id_usuario_fk], references: [id_usuario])
 }

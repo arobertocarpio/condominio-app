@@ -86,8 +86,18 @@ class VigilanteService {
   }
 
   async eliminar(id) {
-    return await prisma.vigilante.delete({
-      where: { id_vigilante: parseInt(id) }
+    const vigilanteId = parseInt(id);
+
+    return await prisma.$transaction(async (tx) => {
+      // Eliminar primero los accesos que referencian al vigilante
+      await tx.acceso.deleteMany({
+        where: { id_vigilante_fk: vigilanteId }
+      });
+
+      // Luego eliminar el vigilante
+      return await tx.vigilante.delete({
+        where: { id_vigilante: vigilanteId }
+      });
     });
   }
 }
