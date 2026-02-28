@@ -1,39 +1,27 @@
 const passwordService = require('./password.service');
 
 class PasswordController {
-  async cambiar(req, res) {
+  async cambiarPorEmail(req, res) {
     try {
-      const { idUsuario } = req.params;
+      const { email, nuevaPassword } = req.body;
 
-      const nuevaPassword = req.body?.nuevaPassword;
-      console.log("BODY COMPLETO:", req.body);
-      console.log('ID Usuario:', idUsuario);
-      console.log('Nueva Contraseña:', nuevaPassword);
-
-      if (!nuevaPassword) {
+      if (!email || !nuevaPassword) {
         return res.status(400).json({
-          error: 'nuevaPassword es requerida'
+          error: 'email y nuevaPassword son requeridos'
         });
       }
 
-      if (nuevaPassword.length < 6) {
-        return res.status(400).json({
-          error: 'La contraseña debe tener al menos 6 caracteres'
-        });
-      }
-
-      const resultado = await passwordService.cambiar(
-        idUsuario,
+      const resultado = await passwordService.cambiarPorEmail(
+        email,
         nuevaPassword
       );
 
-      return res.json(resultado);
+      res.json(resultado);
 
     } catch (error) {
       console.error('ERROR REAL:', error);
-
-      return res.status(500).json({
-        error: 'Error al cambiar la contraseña'
+      res.status(500).json({
+        error: error.message
       });
     }
   }

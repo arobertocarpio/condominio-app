@@ -4,12 +4,9 @@ const bcrypt = require('bcrypt');
 const prisma = new PrismaClient();
 
 class PasswordService {
-  async cambiar(idUsuario, nuevaPassword) {
-    const id = parseInt(idUsuario);
-
-
+  async cambiarPorEmail(email, nuevaPassword) {
     const usuario = await prisma.usuario.findUnique({
-      where: { id_usuario: id }
+      where: { correo: email }
     });
 
     if (!usuario) {
@@ -19,10 +16,8 @@ class PasswordService {
     const passwordHash = await bcrypt.hash(nuevaPassword, 10);
 
     await prisma.usuario.update({
-      where: { id_usuario: id },
-      data: {
-        password: passwordHash
-      }
+      where: { id_usuario: usuario.id_usuario },
+      data: { password: passwordHash }
     });
 
     return {
